@@ -1,0 +1,27 @@
+{
+  "name": "misskey-github-notifier-next",
+  "version": "1.0.0",
+  "description": "A GitHub notification service for Misskey",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy src/index.ts",
+    "check": "tsc --noEmit",
+    "format": "npx @biomejs/biome check --fix ./src"
+  },
+  "author": "samunohito",
+  "license": "MIT",
+  "dependencies": {
+    "hono": "4.7.7",
+    "neverthrow": "^8.2.0",
+    "tsyringe": "^4.10.0",
+    "typescript": "5.8.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@cloudflare/workers-types": "4.20240320.1",
+    "@octokit/webhooks": "13.8.0",
+    "@types/node": "22.14.1",
+    "wrangler": "4.12.0"
+  }
+}
