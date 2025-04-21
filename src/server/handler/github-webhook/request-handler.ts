@@ -4,7 +4,6 @@ import type { ServerContext } from "@notifier/server/types";
 import type { EventPayloadMap } from "@octokit/webhooks/dist-types/generated/webhook-identifiers";
 import type { WebhookEventName } from "@octokit/webhooks/dist-types/types";
 import { type Result, err, ok } from "neverthrow";
-import { log } from "../../../utils";
 import { verifySignature } from "./signature-verifier";
 
 export interface IGithubWebhookPrepareContext extends IPrepareContext {
@@ -65,7 +64,6 @@ export class GithubWebhookRequestHandler implements IRequestHandler<IGithubWebho
   }
 
   async handle(ctx: ServerContext, prepare: IGithubWebhookPrepareContext): Promise<Result<IGithubWebhookHandleResult, RequestHandlerError>> {
-    const requestId = ctx.var.requestId;
     const { eventName } = prepare;
     const payload = await ctx.req.json<EventPayloadMap[typeof eventName]>();
 
@@ -76,10 +74,9 @@ export class GithubWebhookRequestHandler implements IRequestHandler<IGithubWebho
         message: "ok",
       });
     } catch (error) {
-      log(`[${requestId}] Error handling event ${eventName}: ${error}`, "error");
       return err({
         status: 500,
-        message: `Error handling event ${eventName}: ${err}`,
+        message: `Error handling event ${eventName}: ${String(error)}`,
       });
     }
   }

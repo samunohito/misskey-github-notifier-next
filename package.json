@@ -13,8 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "hono": "4.7.7",
-    "neverthrow": "^8.2.0",
-    "tsyringe": "^4.10.0",
+    "neverthrow": "8.2.0",
     "typescript": "5.8.3"
   },
   "devDependencies": {

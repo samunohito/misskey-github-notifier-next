@@ -21,7 +21,7 @@ async function post(props: {
   if (notifier instanceof Notifier) {
     await notifier.send({ content: props.payload });
   } else {
-    console.warn("Notifier is not initialized");
+    props.ctx.var.logger.warn("Notifier is not initialized");
   }
 }
 
@@ -262,6 +262,10 @@ export async function callEventHandler<T extends WebhookEventName>(
     });
   }
 
+  if (ctx.var.config.option.github.webhook.printPayload) {
+    ctx.var.logger.info(`Received event ${eventName}:`, JSON.stringify(payload, null, 2));
+  }
+
   try {
     await handler({
       event: payload,
@@ -272,7 +276,7 @@ export async function callEventHandler<T extends WebhookEventName>(
   } catch (error) {
     return err({
       status: 500,
-      message: `Error handling event ${eventName}: ${error}`,
+      message: `Error handling event ${eventName}: ${String(error)}`,
     });
   }
 }

@@ -1,7 +1,6 @@
 import { type ConfigLoadError, type INotifierConfigLoader, NotifierBase } from "@notifier/server/notifier/base";
 import type { INotifierConfig, INotifierPayload } from "@notifier/server/notifier/types";
 import type { MisskeyPostVisibility, ServerContext } from "@notifier/server/types";
-import { log } from "@notifier/utils";
 import { type Result, err, ok } from "neverthrow";
 
 export const misskeyNotifierServiceConfigLoader: INotifierConfigLoader<ServerContext, MisskeyNotificationServiceConfig> = (
@@ -36,8 +35,8 @@ export interface MisskeyNotificationPayload extends INotifierPayload {
 
 export class MisskeyNotificationService extends NotifierBase<MisskeyNotificationPayload, MisskeyNotificationServiceConfig> {
   // biome-ignore lint/complexity/noUselessConstructor: <explanation>
-  constructor(config: MisskeyNotificationServiceConfig) {
-    super(config);
+  constructor(ctx: ServerContext, config: MisskeyNotificationServiceConfig) {
+    super(ctx, config);
   }
 
   override async send(payload: MisskeyNotificationPayload): Promise<void> {
@@ -54,10 +53,14 @@ export class MisskeyNotificationService extends NotifierBase<MisskeyNotification
         text: payload.content,
         visibility: defaultPostVisibility,
       }),
-    }).then((res) => {
-      if (!res.ok) {
-        log(`${res.statusText}`, "error");
-      }
-    });
+    })
+      .then((res) => {
+        if (!res.ok) {
+          this.ctx.var.logger.error(`${res.statusText}`, "error");
+        }
+      })
+      .catch((error) => {
+        this.ctx.var.logger.error(`Error sending notification: ${String(error)}`, "error");
+      });
   }
 }

@@ -12,10 +12,17 @@ export function configLoader(ctx: ServerContext): Config {
     },
     notifyTo: {
       misskey: {
-        enabled: c.CONFIG?.notifyTo?.misskey?.enabled ?? c.ENV_NOTIFY_TO_MISSKEY_ENABLED === "true",
+        enabled: c.CONFIG?.notifyTo?.misskey?.enabled ?? (c.ENV_NOTIFY_TO_MISSKEY_ENABLED !== undefined ? c.ENV_NOTIFY_TO_MISSKEY_ENABLED === "true" : true),
         url: c.CONFIG?.notifyTo?.misskey?.url ?? c.ENV_NOTIFY_TO_MISSKEY_URL,
         token: c.CONFIG?.notifyTo?.misskey?.token ?? c.ENV_NOTIFY_TO_MISSKEY_TOKEN,
         defaultPostVisibility: c.CONFIG?.notifyTo?.misskey?.defaultPostVisibility ?? c.ENV_NOTIFY_TO_MISSKEY_DEFAULT_POST_VISIBILITY,
+      },
+    },
+    option: {
+      github: {
+        webhook: {
+          printPayload: c.CONFIG?.option?.github?.webhook?.printPayload ?? c.ENV_OPTION_GITHUB_WEBHOOK_PRINT_PAYLOAD === "true",
+        },
       },
     },
   };

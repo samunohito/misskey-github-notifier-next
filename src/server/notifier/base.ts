@@ -1,4 +1,5 @@
 import type { INotifier, INotifierConfig, INotifierPayload } from "@notifier/server/notifier/types";
+import type { ServerContext } from "@notifier/server/types";
 import type { Result } from "neverthrow";
 
 export type ConfigLoadError = {
@@ -9,9 +10,11 @@ export type INotifierConfigLoader<TParams = unknown, TConfig extends INotifierCo
 export abstract class NotifierBase<TPayload extends INotifierPayload = INotifierPayload, TConfig extends INotifierConfig = INotifierConfig>
   implements INotifier<TPayload>
 {
+  protected readonly ctx: ServerContext;
   protected readonly config: TConfig;
 
-  protected constructor(config: TConfig) {
+  protected constructor(ctx: ServerContext, config: TConfig) {
+    this.ctx = ctx;
     this.config = config;
   }
 

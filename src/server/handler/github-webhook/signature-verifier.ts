@@ -20,10 +20,9 @@ export async function verifySignature(props: {
       });
     }
   } catch (error) {
-    console.error("Error verifying signature:", error);
     return err({
       status: 500,
-      message: "Error verifying signature",
+      message: `Error verifying signature: ${String(error)}`,
     });
   }
 

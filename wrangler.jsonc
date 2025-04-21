@@ -16,6 +16,13 @@
           "enabled": true,
           "defaultPostVisibility": "public"
         }
+      },
+      "option": {
+        "github": {
+          "webhook": {
+            "printPayload": true
+          }
+        }
       }
     }
   }

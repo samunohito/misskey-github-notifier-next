@@ -7,12 +7,12 @@ export class Notifier implements INotifier {
 
   initialize(ctx: ServerContext) {
     const config = ctx.var.config;
-    if (config?.notifyTo?.misskey?.enabled ?? true) {
+    if (config.notifyTo.misskey.enabled) {
       const cfg = misskeyNotifierServiceConfigLoader(ctx);
       if (cfg.isOk()) {
-        this.services.push(new MisskeyNotificationService(cfg.value));
+        this.services.push(new MisskeyNotificationService(ctx, cfg.value));
       } else {
-        console.warn(`Misskey notifier config error: ${cfg.error.message}`);
+        ctx.var.logger.warn(`Misskey notifier config error: ${cfg.error.message}`);
       }
     }
   }
