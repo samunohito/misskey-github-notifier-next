@@ -164,15 +164,32 @@ const eventHandlers: Partial<{
     if (event.action !== "submitted") return;
 
     const review = event.review;
-    if (review.body === undefined || review.body === null || review.body.length <= 0) {
-      return;
+    function printBody() {
+      if (review.body === undefined || review.body === null || review.body.length <= 0) {
+        return "";
+      }
+      return `: ${event.sender.login} "${plainBody(review)}"`;
     }
 
-    const pr = event.pull_request;
-    return post({
-      payload: `👀 Review submitted: "${plainTitle(pr)}": ${event.sender.login} "${plainBody(review)}"\n${review.html_url}`,
-      ctx,
-    });
+    switch (review.state) {
+      case "approved":
+        return post({
+          payload: `✅ Review approved: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
+          ctx,
+        });
+      case "commented":
+        return post({
+          payload: `💬 Review commented: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
+          ctx,
+        });
+      case "changes_requested":
+        return post({
+          payload: `❗️ Review changes requested: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
+          ctx,
+        });
+      default:
+        return;
+    }
   },
   async pull_request_review_comment({ event, ctx, prepare }) {
     if (event.action !== "created") return;
