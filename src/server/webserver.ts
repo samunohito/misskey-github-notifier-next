@@ -1,12 +1,12 @@
 import { configLoader } from "@notifier/server/config";
 import { Container, DI } from "@notifier/server/container";
-import { GithubWebhookRequestHandler } from "@notifier/server/handler/github-webhook/request-handler";
-import { handlerAdapter } from "@notifier/server/handler/handler-adapter";
+import { entrypoint } from "@notifier/server/handler/entrypoint";
 import { ConsoleLogger } from "@notifier/server/logger";
 import { Notifier } from "@notifier/server/notifier/notifier";
 import type { ServerEnvironment } from "@notifier/server/types";
 import { Hono, type MiddlewareHandler } from "hono";
 import { env, getRuntimeKey } from "hono/adapter";
+import { LinearRouter } from "hono/router/linear-router";
 import { secureHeaders } from "hono/secure-headers";
 
 // 通知元・通知先の設定問わず必ず読み込まれるものの定義
@@ -45,40 +45,30 @@ const containerMiddleware: MiddlewareHandler<ServerEnvironment> = async (c, next
   await container.dispose();
 };
 
-const dynamicRouteMiddleware = (parent: Hono<ServerEnvironment>): MiddlewareHandler<ServerEnvironment> => {
-  let initialized = false;
-
-  return async (c, next) => {
-    if (!initialized) {
-      const config = c.get("config");
-      const logger = c.get("logger");
-      const router = new Hono<ServerEnvironment>();
-
-      for (const [sourceId, sourceConfig] of Object.entries(config.sources || {})) {
-        if (sourceConfig.type === "github-webhook" && sourceConfig.enabled) {
-          const path = `/${sourceId}`;
-          router.post(path, handlerAdapter(new GithubWebhookRequestHandler(c, sourceConfig)));
-          logger.info(`Registering dynamic webhook handler for source ${sourceId} at ${path}`);
-        }
-      }
-
-      parent.route("/endpoint", router);
-      initialized = true;
-    }
-
-    await next();
-  };
-};
-
 export function setupServer() {
-  const app = new Hono<ServerEnvironment>();
+  const app = new Hono<ServerEnvironment>({
+    router: new LinearRouter(),
+  });
 
   // Middleware
   app.use("*", secureHeaders());
   app.use("*", notifierContextMiddleware);
   app.use("*", loggerMiddleware);
   app.use("*", containerMiddleware);
-  app.use("*", dynamicRouteMiddleware(app));
+
+  app.post("/endpoint/:sourceId", (c) => {
+    const sourceId = c.req.param("sourceId");
+    const config = c.get("config");
+    const logger = c.get("logger");
+
+    const sourceConfig = config.sources?.[sourceId];
+    if (!sourceConfig) {
+      logger.warn(`Source ${sourceId} not found`);
+      return c.text("Not Found", 404);
+    }
+
+    return entrypoint(c, sourceConfig);
+  });
 
   switch (getRuntimeKey()) {
     case "bun": {

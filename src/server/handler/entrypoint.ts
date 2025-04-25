@@ -1,5 +1,6 @@
+import { GithubWebhookRequestHandler } from "@notifier/server/handler/github-webhook/request-handler";
 import type { IRequestHandler, RequestHandlerError } from "@notifier/server/handler/types";
-import type { ServerContext } from "@notifier/server/types";
+import type { ServerContext, SourceConfigItem } from "@notifier/server/types";
 import type { HandlerResponse } from "hono/dist/types/types";
 import type { ContentfulStatusCode, ContentlessStatusCode } from "hono/dist/types/utils/http-status";
 
@@ -27,24 +28,28 @@ function handleError(ctx: ServerContext, error: RequestHandlerError): HandlerRes
   return ctx.json(status as ContentlessStatusCode);
 }
 
-/**
- * {@link import('hono').Hono}のリクエストを{@link IRequestHandler}の実装を使用してハンドリングするアダプター関数
- *
- * このアダプターは、{@link IRequestHandler}インターフェースを実装したクラスをHonoのハンドラー関数に変換します.
- * リクエスト処理の結果に基づいて適切なHTTPレスポンスを生成し、クライアントへの返却処理も行います.
- */
-export function handlerAdapter<THandleResult>(instance: IRequestHandler<THandleResult>): (ctx: ServerContext) => HandlerResponse<unknown> {
-  return async (ctx: ServerContext) => {
-    const handlerResult = await instance.handle(ctx);
-    if (handlerResult.isErr()) {
-      return handleError(ctx, handlerResult.error);
+export function resolveRequestHandler(ctx: ServerContext, sourceConfig: SourceConfigItem<unknown>): IRequestHandler<unknown> {
+  switch (sourceConfig.type) {
+    case "github-webhook": {
+      return new GithubWebhookRequestHandler(ctx, sourceConfig);
     }
-
-    const r = handlerResult.value;
-    if (r) {
-      return ctx.json(r, 200);
+    default: {
+      throw new Error(`Unsupported source type: ${sourceConfig.type}`);
     }
+  }
+}
 
-    return ctx.json(204);
-  };
+export async function entrypoint(c: ServerContext, sourceConfig: SourceConfigItem<unknown>) {
+  const instance = resolveRequestHandler(c, sourceConfig);
+  const handlerResult = await instance.handle(c);
+  if (handlerResult.isErr()) {
+    return handleError(c, handlerResult.error);
+  }
+
+  const r = handlerResult.value;
+  if (r) {
+    return c.json(r, 200);
+  }
+
+  return c.json(204);
 }
