@@ -7,9 +7,11 @@ export class Notifier implements INotifier {
   // Map of destination IDs to notification services
   private readonly services: Map<string, INotifier> = new Map();
   private readonly config: Config;
+  private readonly ctx: ServerContext;
 
   constructor(ctx: ServerContext) {
     this.config = ctx.var.config;
+    this.ctx = ctx;
 
     for (const destConfig of Object.values(this.config.destinations || {}).filter((it) => it.enabled)) {
       const service = this.createNotificationService(ctx, destConfig);
@@ -39,6 +41,8 @@ export class Notifier implements INotifier {
     if (!source) {
       return;
     }
+
+    this.ctx.var.logger.info("Sending notification to: ", JSON.stringify(source.notifyTo));
 
     await Promise.all(
       (source.notifyTo ?? [])
