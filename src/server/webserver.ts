@@ -6,8 +6,7 @@ import { ConsoleLogger } from "@notifier/server/logger";
 import { Notifier } from "@notifier/server/notifier/notifier";
 import type { ServerEnvironment } from "@notifier/server/types";
 import { Hono, type MiddlewareHandler } from "hono";
-import { getRuntimeKey } from "hono/adapter";
-import { env } from "hono/dist/types/helper/adapter";
+import { env, getRuntimeKey } from "hono/adapter";
 import { secureHeaders } from "hono/secure-headers";
 
 // 通知元・通知先の設定問わず必ず読み込まれるものの定義
