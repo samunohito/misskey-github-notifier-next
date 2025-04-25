@@ -1,17 +1,17 @@
 import { configLoader } from "@notifier/server/config";
 import { Container, DI } from "@notifier/server/container";
-import { GithubWebhookRequestHandler } from "@notifier/server/handler/github-webhook/request-handler";
-import { createHandler } from "@notifier/server/handler/handler";
+import { entrypoint } from "@notifier/server/handler/entrypoint";
 import { ConsoleLogger } from "@notifier/server/logger";
 import { Notifier } from "@notifier/server/notifier/notifier";
 import type { ServerEnvironment } from "@notifier/server/types";
 import { Hono, type MiddlewareHandler } from "hono";
-import { getRuntimeKey } from "hono/adapter";
+import { env, getRuntimeKey } from "hono/adapter";
+import { LinearRouter } from "hono/router/linear-router";
 import { secureHeaders } from "hono/secure-headers";
 
 // 通知元・通知先の設定問わず必ず読み込まれるものの定義
 const notifierContextMiddleware: MiddlewareHandler<ServerEnvironment> = async (c, next) => {
-  const config = configLoader(c);
+  const config = configLoader(env(c, getRuntimeKey()));
   c.set("config", config);
 
   const requestId = crypto.randomUUID().substring(0, 8);
@@ -37,8 +37,7 @@ const containerMiddleware: MiddlewareHandler<ServerEnvironment> = async (c, next
   const container = new Container();
   c.set("container", container);
 
-  const notifier = new Notifier();
-  notifier.initialize(c);
+  const notifier = new Notifier(c);
   container.set(DI.notifier, notifier);
 
   await next();
@@ -47,7 +46,9 @@ const containerMiddleware: MiddlewareHandler<ServerEnvironment> = async (c, next
 };
 
 export function setupServer() {
-  const app = new Hono<ServerEnvironment>();
+  const app = new Hono<ServerEnvironment>({
+    router: new LinearRouter(),
+  });
 
   // Middleware
   app.use("*", secureHeaders());
@@ -55,8 +56,19 @@ export function setupServer() {
   app.use("*", loggerMiddleware);
   app.use("*", containerMiddleware);
 
-  // Handlers
-  app.post("/github/webhook", createHandler(GithubWebhookRequestHandler));
+  app.post("/endpoint/:sourceId", (c) => {
+    const sourceId = c.req.param("sourceId");
+    const config = c.get("config");
+    const logger = c.get("logger");
+
+    const sourceConfig = config.sources?.[sourceId];
+    if (!sourceConfig) {
+      logger.warn(`Source ${sourceId} not found`);
+      return c.text("Not Found", 404);
+    }
+
+    return entrypoint(c, sourceConfig);
+  });
 
   switch (getRuntimeKey()) {
     case "bun": {

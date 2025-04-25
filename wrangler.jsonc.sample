@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "misskey-github-notifier",
+  "main": "src/index.ts",
+  "compatibility_date": "2023-12-01",
+  "dev": {
+    "port": 8080
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // 環境変数やシークレットのほか、ここでもConfigの値を設定できます。
+    // オブジェクトの構造はsrc/server/types.tsをご参照ください。
+    // In addition to environment variables and secrets, you can also set Config values here.
+    // Please refer to src/server/types.ts for the structure of the object.
+    "CONFIG": {
+      "sources": {},
+      "destinations": {}
+    }
+  }
+}

@@ -1,25 +1,33 @@
 import { DI } from "@notifier/server/container";
-import type { IGithubWebhookPrepareContext } from "@notifier/server/handler/github-webhook/request-handler";
+import type { GithubWebhookPrepareContext } from "@notifier/server/handler/github-webhook/request-handler";
 import type { RequestHandlerError } from "@notifier/server/handler/types";
 import { Notifier } from "@notifier/server/notifier/notifier";
-import type { ServerContext } from "@notifier/server/types";
+import type { ServerContext, SourceConfigItem } from "@notifier/server/types";
 import type { EventPayloadMap } from "@octokit/webhooks/dist-types/generated/webhook-identifiers";
 import type { WebhookEventName } from "@octokit/webhooks/dist-types/types";
 import { type Result, err, ok } from "neverthrow";
 
-type WebhookEventHandler<T extends WebhookEventName> = (props: {
+type WebhookEventHandlerArgs<T extends WebhookEventName> = {
   event: EventPayloadMap[T];
   ctx: ServerContext;
-  prepare: IGithubWebhookPrepareContext;
-}) => Promise<void>;
+  prepare: GithubWebhookPrepareContext;
+  config: SourceConfigItem<"github-webhook">;
+};
+
+type WebhookEventHandler<T extends WebhookEventName> = (props: WebhookEventHandlerArgs<T>) => Promise<void>;
 
 async function post(props: {
   payload: string;
   ctx: ServerContext;
+  prepare: GithubWebhookPrepareContext;
+  config: SourceConfigItem<"github-webhook">;
 }) {
   const notifier = props.ctx.var.container.get(DI.notifier);
   if (notifier instanceof Notifier) {
-    await notifier.send({ content: props.payload });
+    await notifier.send({
+      sourceId: props.config.id,
+      content: props.payload,
+    });
   } else {
     props.ctx.var.logger.warn("Notifier is not initialized");
   }
@@ -28,7 +36,7 @@ async function post(props: {
 const eventHandlers: Partial<{
   [K in WebhookEventName]: WebhookEventHandler<K>;
 }> = {
-  async status({ event, ctx, prepare }) {
+  async status({ event, ctx, prepare, config }) {
     if (!event.branches.map((it) => it.name).includes("develop")) return;
     if (event.state !== "error" && event.state !== "failure") return;
 
@@ -47,16 +55,20 @@ const eventHandlers: Partial<{
         return post({
           payload: `⚠️ **BUILD STILL FAILED** ⚠️: ?[<plain>${commit.commit.message}</plain>](${commit.html_url})`,
           ctx,
+          prepare,
+          config,
         });
       }
 
       return post({
         payload: `🚨 **BUILD FAILED** 🚨: → ?[<plain>${commit.commit.message}</plain>](${commit.html_url}) ←`,
         ctx,
+        prepare,
+        config,
       });
     });
   },
-  async push({ event, ctx, prepare }) {
+  async push({ event, ctx, prepare, config }) {
     if (event.ref !== "refs/heads/develop") return;
 
     const pusher = event.pusher;
@@ -72,24 +84,30 @@ const eventHandlers: Partial<{
     return post({
       payload: `🆕 Pushed by **${pusher.name}** with ?[${commits.length} commit${commits.length > 1 ? "s" : ""}](${compare}):\n${commitHashes}`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async watch({ event, ctx, prepare }) {
+  async watch({ event, ctx, prepare, config }) {
     const sender = event.sender;
     return post({
       payload: `$[spin ⭐️] Starred by ?[**${sender.login}**](${sender.html_url})`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async fork({ event, ctx, prepare }) {
+  async fork({ event, ctx, prepare, config }) {
     const sender = event.sender;
     const repo = event.forkee;
     return post({
       payload: `$[spin.y 🍴] ?[Forked](${repo.html_url}) by ?[**${sender.login}**](${sender.html_url})`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async issues({ event, ctx, prepare }) {
+  async issues({ event, ctx, prepare, config }) {
     const issue = event.issue;
     let title: string;
     switch (event.action) {
@@ -123,9 +141,11 @@ const eventHandlers: Partial<{
     return post({
       payload: `${title}: #${issue.number} "${plainTitle(issue)}"\n${issue.html_url}`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async issue_comment({ event, ctx, prepare }) {
+  async issue_comment({ event, ctx, prepare, config }) {
     if (event.action !== "created") return;
 
     const issue = event.issue;
@@ -133,9 +153,11 @@ const eventHandlers: Partial<{
     return post({
       payload: `💬 Commented on "${plainTitle(issue)}": ${event.sender.login} "${plainBody(comment)}"\n${comment.html_url}`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async pull_request({ event, ctx, prepare }) {
+  async pull_request({ event, ctx, prepare, config }) {
     const pr = event.pull_request;
     let title: string;
     switch (event.action) {
@@ -158,9 +180,11 @@ const eventHandlers: Partial<{
     return post({
       payload: `${title}: "${plainTitle(pr)}"\n${pr.html_url}`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async pull_request_review({ event, ctx, prepare }) {
+  async pull_request_review({ event, ctx, prepare, config }) {
     if (event.action !== "submitted") return;
 
     const review = event.review;
@@ -176,22 +200,28 @@ const eventHandlers: Partial<{
         return post({
           payload: `✅ Review approved: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
           ctx,
+          prepare,
+          config,
         });
       case "commented":
         return post({
           payload: `💬 Review commented: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
           ctx,
+          prepare,
+          config,
         });
       case "changes_requested":
         return post({
           payload: `❗️ Review changes requested: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
           ctx,
+          prepare,
+          config,
         });
       default:
         return;
     }
   },
-  async pull_request_review_comment({ event, ctx, prepare }) {
+  async pull_request_review_comment({ event, ctx, prepare, config }) {
     if (event.action !== "created") return;
 
     const pr = event.pull_request;
@@ -199,18 +229,22 @@ const eventHandlers: Partial<{
     return post({
       payload: `💬 Review commented on "${plainTitle(pr)}": ${event.sender.login} "${plainBody(comment)}"\n${comment.html_url}`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async release({ event, ctx, prepare }) {
+  async release({ event, ctx, prepare, config }) {
     if (event.action !== "published") return;
 
     const release = event.release;
     return post({
       payload: `🎁 **NEW RELEASE**: [${release.tag_name}](${release.html_url}) is out. Enjoy!`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async discussion({ event, ctx, prepare }) {
+  async discussion({ event, ctx, prepare, config }) {
     const discussion = event.discussion;
     let title: string;
     let url: string;
@@ -242,9 +276,11 @@ const eventHandlers: Partial<{
     return post({
       payload: `${title}: #${discussion.number} "${plainTitle(discussion)}"\n${url}`,
       ctx,
+      prepare,
+      config,
     });
   },
-  async discussion_comment({ event, ctx, prepare }) {
+  async discussion_comment({ event, ctx, prepare, config }) {
     if (event.action !== "created") return;
 
     const discussion = event.discussion;
@@ -253,6 +289,8 @@ const eventHandlers: Partial<{
     return post({
       payload: `💬 Commented on #${discussion.number} "${plainTitle(discussion)}": ${event.sender.login} "${plainBody(comment)}"\n${comment.html_url}`,
       ctx,
+      prepare,
+      config,
     });
   },
 };
@@ -269,7 +307,8 @@ export async function callEventHandler<T extends WebhookEventName>(
   eventName: T,
   payload: EventPayloadMap[T],
   ctx: ServerContext,
-  prepare: IGithubWebhookPrepareContext,
+  prepare: GithubWebhookPrepareContext,
+  config: SourceConfigItem<"github-webhook">,
 ): Promise<Result<unknown, RequestHandlerError>> {
   const handler = eventHandlers[eventName];
   if (!handler) {
@@ -279,8 +318,9 @@ export async function callEventHandler<T extends WebhookEventName>(
     });
   }
 
-  if (ctx.var.config.option.github.webhook.printPayload) {
-    ctx.var.logger.info(`Received event ${eventName}:`, JSON.stringify(payload, null, 2));
+  // Get printPayload option from the source configuration
+  if (config.options.debug.printPayload) {
+    ctx.var.logger.info(`Received event ${eventName} from source ${config.id}:`, JSON.stringify(payload, null, 2));
   }
 
   try {
@@ -288,6 +328,7 @@ export async function callEventHandler<T extends WebhookEventName>(
       event: payload,
       ctx,
       prepare,
+      config,
     });
     return ok();
   } catch (error) {

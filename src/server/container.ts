@@ -1,6 +1,4 @@
-import type { Constructor } from "@notifier/utils";
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export type ContainerKey<T = any> = string | symbol | number | Constructor<T>;
+export type ContainerKey = string | symbol | number;
 
 export type IContainerDisposable = {
   dispose(): void | Promise<void>;

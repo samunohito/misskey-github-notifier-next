@@ -1,37 +1,10 @@
-import { type ConfigLoadError, type INotifierConfigLoader, NotifierBase } from "@notifier/server/notifier/base";
-import type { INotifierConfig, INotifierPayload } from "@notifier/server/notifier/types";
-import type { MisskeyPostVisibility, ServerContext } from "@notifier/server/types";
-import { type Result, err, ok } from "neverthrow";
+import { type INotifierConfig, NotifierBase } from "@notifier/server/notifier/base";
+import type { INotifierPayload } from "@notifier/server/notifier/types";
+import type { DestinationConfigItem, ServerContext } from "@notifier/server/types";
 
-export const misskeyNotifierServiceConfigLoader: INotifierConfigLoader<ServerContext, MisskeyNotificationServiceConfig> = (
-  ctx: ServerContext,
-): Result<MisskeyNotificationServiceConfig, ConfigLoadError> => {
-  const url = ctx.var.config.notifyTo?.misskey?.url;
-  const token = ctx.var.config.notifyTo?.misskey?.token;
-  const defaultPostVisibility = (ctx.var.config.notifyTo?.misskey?.defaultPostVisibility ?? "home") as MisskeyPostVisibility;
+export type MisskeyNotificationServiceConfig = INotifierConfig & DestinationConfigItem<"misskey">;
 
-  if (!url || !token) {
-    return err({
-      message: "Misskey URL and token are required",
-    });
-  }
-
-  return ok({
-    url,
-    token,
-    defaultPostVisibility,
-  });
-};
-
-export interface MisskeyNotificationServiceConfig extends INotifierConfig {
-  url: string;
-  token: string;
-  defaultPostVisibility: MisskeyPostVisibility;
-}
-
-export interface MisskeyNotificationPayload extends INotifierPayload {
-  content: string;
-}
+export type MisskeyNotificationPayload = INotifierPayload;
 
 export class MisskeyNotificationService extends NotifierBase<MisskeyNotificationPayload, MisskeyNotificationServiceConfig> {
   // biome-ignore lint/complexity/noUselessConstructor: <explanation>
@@ -40,8 +13,8 @@ export class MisskeyNotificationService extends NotifierBase<MisskeyNotification
   }
 
   override async send(payload: MisskeyNotificationPayload): Promise<void> {
-    const { token, defaultPostVisibility } = this.config;
-    const url = this.config.url.endsWith("/") ? this.config.url : `${this.config.url}/`;
+    const { token, defaultPostVisibility, url: _url } = this.config.config;
+    const url = _url.endsWith("/") ? _url : `${_url}/`;
 
     return fetch(`${url}api/notes/create`, {
       method: "POST",
