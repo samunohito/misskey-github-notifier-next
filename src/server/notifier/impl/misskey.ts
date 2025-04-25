@@ -16,6 +16,10 @@ export class MisskeyNotificationService extends NotifierBase<MisskeyNotification
     const { token, defaultPostVisibility, url: _url } = this.config.config;
     const url = _url.endsWith("/") ? _url : `${_url}/`;
 
+    if (this.config.options.debug.printPayload) {
+      this.ctx.var.logger.info("payload: ", JSON.stringify(payload));
+    }
+
     return fetch(`${url}api/notes/create`, {
       method: "POST",
       headers: {

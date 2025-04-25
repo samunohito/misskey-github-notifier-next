@@ -14,6 +14,7 @@ export class Notifier implements INotifier {
     for (const destConfig of Object.values(this.config.destinations || {}).filter((it) => it.enabled)) {
       const service = this.createNotificationService(ctx, destConfig);
       if (service.isOk()) {
+        ctx.var.logger.info("Initialized notification service : ", destConfig.id);
         this.services.set(destConfig.id, service.value);
       } else {
         ctx.var.logger.warn("Failed to initialize notification service", destConfig.id);
