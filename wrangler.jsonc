@@ -11,19 +11,8 @@
   },
   "vars": {
     "CONFIG": {
-      "notifyTo": {
-        "misskey": {
-          "enabled": true,
-          "defaultPostVisibility": "public"
-        }
-      },
-      "option": {
-        "github": {
-          "webhook": {
-            "printPayload": true
-          }
-        }
-      }
+      "sources": {},
+      "destinations": {}
     }
   }
 }
