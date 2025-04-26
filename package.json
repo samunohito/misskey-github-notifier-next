@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "wrangler dev src/index.ts",
     "deploy": "wrangler deploy src/index.ts",
-    "check": "tsc --noEmit",
-    "format": "npx @biomejs/biome check --fix ./src",
+    "lint": "bun lint:typecheck && bun lint:biome",
+    "lint:typecheck": "tsc --noEmit",
+    "lint:biome": "bunx biome lint ./src",
+    "format": "bunx biome check --fix ./src",
     "test": "bun test"
   },
   "author": "samunohito",
@@ -22,6 +24,7 @@
     "@cloudflare/workers-types": "4.20240320.1",
     "@octokit/webhooks": "13.8.0",
     "@types/node": "22.14.1",
+    "bun": "1.2.10",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.1.2",
     "wrangler": "4.12.0"
