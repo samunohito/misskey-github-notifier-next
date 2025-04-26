@@ -39,6 +39,7 @@ export class Notifier implements INotifier {
   async send<T extends INotifierPayload>(payload: T): Promise<void> {
     const source = this.config.sources?.[payload.sourceId];
     if (!source) {
+      this.ctx.var.logger.warn("Unknown source ID: ", payload.sourceId);
       return;
     }
 
