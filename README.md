@@ -23,7 +23,9 @@ A service that forwards GitHub webhook events to Misskey as notes. This allows y
 
 ## Configuration
 
-The service is configured using environment variables with a flexible ID-based system that allows for multiple sources and destinations.
+The service can be configured using either environment variables or the wrangler.jsonc file (when deploying to Cloudflare Workers). Both methods use a flexible ID-based system that allows for multiple sources and destinations.
+
+> **Recommendation**: For non-secret parameters, it's recommended to use wrangler.jsonc as it provides better structure and readability for complex configurations. Use environment variables or Cloudflare secrets for sensitive information like tokens and webhook secrets.
 
 ### ID Format
 
@@ -124,6 +126,149 @@ In this example:
 - Events from "repo2" will be sent only to the second Misskey instance
 - The GitHub webhooks should be configured to send events to `/endpoint/repo1` and `/endpoint/repo2` respectively
 
+## Wrangler Configuration
+
+When deploying to Cloudflare Workers, you can configure the service using the `wrangler.jsonc` file. This provides a more structured way to define your configuration compared to environment variables.
+
+### Example Wrangler Configuration
+
+#### Single Source with Single Destination
+
+```jsonc
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "misskey-github-notifier",
+  "main": "src/index.ts",
+  "compatibility_date": "2023-12-01",
+  "dev": {
+    "port": 8080
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "CONFIG": {
+      "sources": {
+        "myrepo": {
+          "type": "github-webhook",
+          "enabled": true,
+          "notifyTo": ["mymisskey"],
+          "options": {
+            "debug": {
+              "printPayload": false
+            }
+          }
+          // Note: webhookSecret should be set as a secret, not here
+        }
+      },
+      "destinations": {
+        "mymisskey": {
+          "type": "misskey",
+          "enabled": true,
+          "options": {
+            "debug": {
+              "printPayload": false
+            }
+          },
+          "config": {
+            "defaultPostVisibility": "home"
+            // Note: url and token should be set as secrets, not here
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+For sensitive information like webhook secrets and API tokens, use Cloudflare secrets:
+
+```bash
+# Set secrets for GitHub webhook
+wrangler secret put ENV_SOURCE_myrepo_CONFIG_WEBHOOK_SECRET
+
+# Set secrets for Misskey
+wrangler secret put ENV_DESTINATION_mymisskey_CONFIG_URL
+wrangler secret put ENV_DESTINATION_mymisskey_CONFIG_TOKEN
+```
+
+#### Multiple Sources with Multiple Destinations
+
+```jsonc
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "misskey-github-notifier",
+  "main": "src/index.ts",
+  "compatibility_date": "2023-12-01",
+  "vars": {
+    "CONFIG": {
+      "sources": {
+        "repo1": {
+          "type": "github-webhook",
+          "enabled": true,
+          "notifyTo": ["misskey1", "misskey2"],
+          "options": {
+            "debug": {
+              "printPayload": false
+            }
+          }
+          // Note: webhookSecret should be set as a secret, not here
+        },
+        "repo2": {
+          "type": "github-webhook",
+          "enabled": true,
+          "notifyTo": ["misskey2"],
+          "options": {
+            "debug": {
+              "printPayload": false
+            }
+          }
+          // Note: webhookSecret should be set as a secret, not here
+        }
+      },
+      "destinations": {
+        "misskey1": {
+          "type": "misskey",
+          "enabled": true,
+          "options": {
+            "debug": {
+              "printPayload": false
+            }
+          },
+          "config": {
+            "defaultPostVisibility": "home"
+            // Note: url and token should be set as secrets, not here
+          }
+        },
+        "misskey2": {
+          "type": "misskey",
+          "enabled": true,
+          "options": {
+            "debug": {
+              "printPayload": false
+            }
+          },
+          "config": {
+            "defaultPostVisibility": "followers"
+            // Note: url and token should be set as secrets, not here
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Mixing Environment Variables and Wrangler Configuration
+
+You can mix both configuration methods. The system will merge them with the following priority:
+
+1. Environment variables (highest priority)
+2. Wrangler configuration
+3. Default values (lowest priority)
+
+This allows you to set non-sensitive configuration in wrangler.jsonc and sensitive information as environment variables or secrets.
+
 ## Troubleshooting and Best Practices
 
 ### Troubleshooting
@@ -137,8 +282,10 @@ In this example:
 
 - **Unique IDs**: Use descriptive and unique IDs for your sources and destinations to avoid confusion.
 - **Security**: Keep your webhook secrets and API tokens secure. Do not commit them to public repositories.
+- **Configuration Structure**: For complex configurations, use wrangler.jsonc for better readability and structure.
+- **Sensitive Information**: Store sensitive information like webhook secrets and API tokens as environment variables or Cloudflare secrets, not in wrangler.jsonc.
 - **Visibility**: Choose the appropriate visibility level for your Misskey posts based on your privacy requirements.
-- **Multiple Destinations**: You can send notifications from a single source to multiple destinations by separating the destination IDs with commas in the `ENV_SOURCE_<ID>_NOTIFY_TO` variable.
+- **Multiple Destinations**: You can send notifications from a single source to multiple destinations by specifying multiple destination IDs in the `notifyTo` array (wrangler.jsonc) or by separating them with commas in the `ENV_SOURCE_<ID>_NOTIFY_TO` variable (environment variables).
 
 ## Issues and Feature Requests
 
