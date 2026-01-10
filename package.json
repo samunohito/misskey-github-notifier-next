@@ -10,7 +10,7 @@
     "lint:typecheck": "tsc --noEmit",
     "lint:biome": "bunx biome lint ./src",
     "format": "bunx biome check --fix ./src",
-    "test": "bun test"
+    "test": "vitest run"
   },
   "author": "samunohito",
   "license": "MIT",
