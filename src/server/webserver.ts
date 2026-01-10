@@ -56,7 +56,7 @@ export function setupServer() {
   app.use("*", loggerMiddleware);
   app.use("*", containerMiddleware);
 
-  app.post("/endpoint/:sourceId", (c) => {
+  app.post("/endpoint/:sourceId", async (c) => {
     const sourceId = c.req.param("sourceId");
     const config = c.get("config");
     const logger = c.get("logger");
