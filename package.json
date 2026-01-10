@@ -8,8 +8,8 @@
     "deploy": "wrangler deploy src/index.ts",
     "lint": "bun run lint:typecheck && bun run lint:biome",
     "lint:typecheck": "tsc --noEmit --project tsconfig-typecheck.json",
-    "lint:biome": "bunx biome lint ./src",
-    "format": "bunx biome check --fix ./src",
+    "lint:biome": "biome lint ./src",
+    "format": "biome check --write ./src",
     "test": "vitest run"
   },
   "author": "samunohito",

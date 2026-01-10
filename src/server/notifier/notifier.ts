@@ -1,7 +1,7 @@
 import { MisskeyNotificationService } from "@notifier/server/notifier/impl/misskey";
 import type { INotifier, INotifierPayload } from "@notifier/server/notifier/types";
 import type { Config, DestinationConfigItem, ServerContext } from "@notifier/server/types";
-import { type Result, err, ok } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 
 export class Notifier implements INotifier {
   // Map of destination IDs to notification services
@@ -26,7 +26,10 @@ export class Notifier implements INotifier {
     ctx.var.logger.info(`Initialized ${this.services.size} notification services`);
   }
 
-  private createNotificationService(ctx: ServerContext, config: DestinationConfigItem<unknown>): Result<INotifier, unknown> {
+  private createNotificationService(
+    ctx: ServerContext,
+    config: DestinationConfigItem<unknown>,
+  ): Result<INotifier, unknown> {
     switch (config.type) {
       case "misskey": {
         return ok(new MisskeyNotificationService(ctx, config));

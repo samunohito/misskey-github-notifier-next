@@ -1,5 +1,5 @@
 import type { RequestHandlerError } from "@notifier/server/handler/types";
-import { type Result, err, ok } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 
 const encoder = new TextEncoder();
 
