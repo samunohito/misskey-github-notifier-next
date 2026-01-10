@@ -6,14 +6,13 @@
     "esModuleInterop": true,
     "strict": true,
     "lib": ["ESNext", "WebWorker"],
-    "outDir": "dist",
-    "rootDir": "src",
     "skipLibCheck": true,
+    "noEmit": true,
     "paths": {
       "@notifier/*": ["./src/*"]
     },
     "sourceMap": true
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }

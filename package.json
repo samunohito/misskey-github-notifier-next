@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "wrangler dev src/index.ts",
     "deploy": "wrangler deploy src/index.ts",
-    "lint": "bun lint:typecheck && bun lint:biome",
-    "lint:typecheck": "tsc --noEmit",
+    "lint": "bun run lint:typecheck && bun run lint:biome",
+    "lint:typecheck": "tsc --noEmit --project tsconfig-typecheck.json",
     "lint:biome": "bunx biome lint ./src",
     "format": "bunx biome check --fix ./src",
-    "test": "bun test"
+    "test": "vitest run"
   },
   "author": "samunohito",
   "license": "MIT",
