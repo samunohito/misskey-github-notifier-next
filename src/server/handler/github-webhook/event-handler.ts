@@ -2,13 +2,11 @@ import { DI } from "@notifier/server/container";
 import type { GithubWebhookPrepareContext } from "@notifier/server/handler/github-webhook/request-handler";
 import type { RequestHandlerError } from "@notifier/server/handler/types";
 import { Notifier } from "@notifier/server/notifier/notifier";
-import type { ServerContext, SourceConfigItem } from "@notifier/server/types";
-import type { EventPayloadMap } from "@octokit/webhooks/dist-types/generated/webhook-identifiers";
-import type { WebhookEventName } from "@octokit/webhooks/dist-types/types";
-import { type Result, err, ok } from "neverthrow";
+import type { ServerContext, SourceConfigItem, WebhookEventName, WebhookPayload } from "@notifier/server/types";
+import { err, ok, type Result } from "neverthrow";
 
 type WebhookEventHandlerArgs<T extends WebhookEventName> = {
-  event: EventPayloadMap[T];
+  event: WebhookPayload<T>;
   ctx: ServerContext;
   prepare: GithubWebhookPrepareContext;
   config: SourceConfigItem<"github-webhook">;
@@ -305,7 +303,7 @@ function plainBody(comment: { body: string | null }) {
 
 export async function callEventHandler<T extends WebhookEventName>(
   eventName: T,
-  payload: EventPayloadMap[T],
+  payload: WebhookPayload<T>,
   ctx: ServerContext,
   prepare: GithubWebhookPrepareContext,
   config: SourceConfigItem<"github-webhook">,

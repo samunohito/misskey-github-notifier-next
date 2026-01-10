@@ -19,7 +19,15 @@ export class ConsoleLogger implements ILogger {
   private _log(func: (...args: unknown[]) => void, level: LogLevel, message: string, ...rest: string[]): void {
     const { method, path } = this.ctx.req;
     const timestamp = new Date().toISOString();
-    func(`[${timestamp}]`, `[${level.toUpperCase()}]`, `[${method}]`, `[${path}]`, this.prefix ? `[${this.prefix}]` : undefined, message, ...rest);
+    func(
+      `[${timestamp}]`,
+      `[${level.toUpperCase()}]`,
+      `[${method}]`,
+      `[${path}]`,
+      this.prefix ? `[${this.prefix}]` : undefined,
+      message,
+      ...rest,
+    );
   }
 
   log(message: string, ...rest: string[]): void {

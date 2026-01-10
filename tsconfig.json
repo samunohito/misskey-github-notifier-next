@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "strict": true,
     "lib": ["ESNext", "WebWorker"],
@@ -11,8 +11,7 @@
     "skipLibCheck": true,
     "paths": {
       "@notifier/*": ["./src/*"]
-    },
-    "sourceMap": true
+    }
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules"]

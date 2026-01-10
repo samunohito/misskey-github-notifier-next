@@ -1,4 +1,10 @@
-import { type Config, type DestinationConfigItem, type Environment, type SourceConfigItem, misskeyPostVisibilities } from "@notifier/server/types";
+import {
+  type Config,
+  type DestinationConfigItem,
+  type Environment,
+  misskeyPostVisibilities,
+  type SourceConfigItem,
+} from "@notifier/server/types";
 import type { RecursivePartial } from "@notifier/utils/types";
 
 function require<T>(value: T | undefined, message: string): T {
@@ -274,7 +280,9 @@ function resolveDestinations(
       config: {
         url: require(value.config?.url, `url is required for destination ${key}`),
         token: require(value.config?.token, `token is required for destination ${key}`),
-        defaultPostVisibility: value.config?.defaultPostVisibility ? match(value.config.defaultPostVisibility, misskeyPostVisibilities) : "home",
+        defaultPostVisibility: value.config?.defaultPostVisibility
+          ? match(value.config.defaultPostVisibility, misskeyPostVisibilities)
+          : "home",
       },
     };
   }

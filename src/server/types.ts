@@ -1,6 +1,7 @@
 import type { IContainer } from "@notifier/server/container";
 import type { ILogger } from "@notifier/server/logger";
 import type { RecursivePartial } from "@notifier/utils/types";
+import type { EmitterWebhookEvent, EmitterWebhookEventName } from "@octokit/webhooks/types";
 import type { Context } from "hono";
 
 /**
@@ -202,3 +203,13 @@ export const misskeyPostVisibilities = ["public", "home", "followers", "specifie
  * Misskey投稿公開範囲
  */
 export type MisskeyPostVisibility = (typeof misskeyPostVisibilities)[number];
+
+/**
+ * GitHub Webhookイベント名のユーティリティ型
+ */
+export type WebhookEventName = EmitterWebhookEventName;
+
+/**
+ * GitHub Webhookイベントのペイロード型を取得するユーティリティ型
+ */
+export type WebhookPayload<T extends EmitterWebhookEventName> = EmitterWebhookEvent<T>["payload"];

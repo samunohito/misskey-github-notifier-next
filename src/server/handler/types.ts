@@ -1,5 +1,5 @@
 import type { ServerContext } from "@notifier/server/types";
-import type { StatusCode } from "hono/dist/types/utils/http-status";
+import type { StatusCode } from "hono/utils/http-status";
 import type { Result } from "neverthrow";
 
 /**

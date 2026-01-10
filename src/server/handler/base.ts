@@ -1,6 +1,6 @@
 import type { IRequestHandler, RequestHandlerError } from "@notifier/server/handler/types";
 import type { ServerContext } from "@notifier/server/types";
-import { type Result, err, ok } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 
 /**
  * リクエスト前処理で生成される型.
@@ -73,5 +73,8 @@ export abstract class RequestHandlerBase<
    * @param ctx サーバーコンテキスト
    * @param prepare {@link prepare}で生成されたコンテキスト
    */
-  protected abstract doHandle(ctx: ServerContext, prepare: TPrepareContext): Promise<Result<THandleResult, RequestHandlerError>>;
+  protected abstract doHandle(
+    ctx: ServerContext,
+    prepare: TPrepareContext,
+  ): Promise<Result<THandleResult, RequestHandlerError>>;
 }

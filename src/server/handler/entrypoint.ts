@@ -1,8 +1,8 @@
 import { GithubWebhookRequestHandler } from "@notifier/server/handler/github-webhook/request-handler";
 import type { IRequestHandler, RequestHandlerError } from "@notifier/server/handler/types";
 import type { ServerContext, SourceConfigItem } from "@notifier/server/types";
-import type { HandlerResponse } from "hono/dist/types/types";
-import type { ContentfulStatusCode, ContentlessStatusCode } from "hono/dist/types/utils/http-status";
+import type { HandlerResponse } from "hono/types";
+import type { ContentfulStatusCode, ContentlessStatusCode } from "hono/utils/http-status";
 
 /**
  * リクエストハンドラーのエラーを処理する関数
@@ -28,7 +28,10 @@ function handleError(ctx: ServerContext, error: RequestHandlerError): HandlerRes
   return ctx.json(status as ContentlessStatusCode);
 }
 
-export function resolveRequestHandler(ctx: ServerContext, sourceConfig: SourceConfigItem<unknown>): IRequestHandler<unknown> {
+export function resolveRequestHandler(
+  ctx: ServerContext,
+  sourceConfig: SourceConfigItem<unknown>,
+): IRequestHandler<unknown> {
   switch (sourceConfig.type) {
     case "github-webhook": {
       return new GithubWebhookRequestHandler(ctx, sourceConfig);

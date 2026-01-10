@@ -6,7 +6,10 @@ export type MisskeyNotificationServiceConfig = INotifierConfig & DestinationConf
 
 export type MisskeyNotificationPayload = INotifierPayload;
 
-export class MisskeyNotificationService extends NotifierBase<MisskeyNotificationPayload, MisskeyNotificationServiceConfig> {
+export class MisskeyNotificationService extends NotifierBase<
+  MisskeyNotificationPayload,
+  MisskeyNotificationServiceConfig
+> {
   // biome-ignore lint/complexity/noUselessConstructor: <explanation>
   constructor(ctx: ServerContext, config: MisskeyNotificationServiceConfig) {
     super(ctx, config);

@@ -1,10 +1,8 @@
 import { type IPrepareContext, type IRequestHandlerConfig, RequestHandlerBase } from "@notifier/server/handler/base";
 import { callEventHandler } from "@notifier/server/handler/github-webhook/event-handler";
 import type { RequestHandlerError } from "@notifier/server/handler/types";
-import type { ServerContext, SourceConfigItem } from "@notifier/server/types";
-import type { EventPayloadMap } from "@octokit/webhooks/dist-types/generated/webhook-identifiers";
-import type { WebhookEventName } from "@octokit/webhooks/dist-types/types";
-import { type Result, err, ok } from "neverthrow";
+import type { ServerContext, SourceConfigItem, WebhookEventName, WebhookPayload } from "@notifier/server/types";
+import { err, ok, type Result } from "neverthrow";
 import { verifySignature } from "./signature-verifier";
 
 export type GithubWebhookRequestHandlerConfig = IRequestHandlerConfig & SourceConfigItem<"github-webhook">;
@@ -18,7 +16,11 @@ export type GithubWebhookHandleResult = {
   message: string;
 };
 
-export class GithubWebhookRequestHandler extends RequestHandlerBase<GithubWebhookRequestHandlerConfig, GithubWebhookPrepareContext, GithubWebhookHandleResult> {
+export class GithubWebhookRequestHandler extends RequestHandlerBase<
+  GithubWebhookRequestHandlerConfig,
+  GithubWebhookPrepareContext,
+  GithubWebhookHandleResult
+> {
   // biome-ignore lint/complexity/noUselessConstructor: <explanation>
   constructor(ctx: ServerContext, config: GithubWebhookRequestHandlerConfig) {
     super(ctx, config);
@@ -64,9 +66,12 @@ export class GithubWebhookRequestHandler extends RequestHandlerBase<GithubWebhoo
     });
   }
 
-  override async doHandle(ctx: ServerContext, prepare: GithubWebhookPrepareContext): Promise<Result<GithubWebhookHandleResult, RequestHandlerError>> {
+  override async doHandle(
+    ctx: ServerContext,
+    prepare: GithubWebhookPrepareContext,
+  ): Promise<Result<GithubWebhookHandleResult, RequestHandlerError>> {
     const { eventName } = prepare;
-    const payload = await ctx.req.json<EventPayloadMap[typeof eventName]>();
+    const payload = await ctx.req.json<WebhookPayload<typeof eventName>>();
 
     try {
       await callEventHandler(eventName, payload, ctx, prepare, this.config);
