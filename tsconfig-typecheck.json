@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "lib": ["ESNext", "WebWorker"],
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": {
+      "@notifier/*": ["./src/*"]
+    },
+    "sourceMap": true
+  },
+  "exclude": ["node_modules"]
+}
