@@ -194,27 +194,36 @@ const eventHandlers: Partial<{
     }
 
     switch (review.state) {
-      case "approved":
+      case "approved": {
         return post({
           payload: `✅ Review approved: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
           ctx,
           prepare,
           config,
         });
-      case "commented":
+      }
+      case "commented": {
+        const body = printBody();
+        if (body.length === 0) {
+          // コメントだけでbodyがない場合はノイズになるので無視する
+          return;
+        }
+
         return post({
-          payload: `💬 Review commented: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
+          payload: `💬 Review commented: "${plainTitle(event.pull_request)}"${body}\n${review.html_url}`,
           ctx,
           prepare,
           config,
         });
-      case "changes_requested":
+      }
+      case "changes_requested": {
         return post({
           payload: `❗️ Review changes requested: "${plainTitle(event.pull_request)}"${printBody()}\n${review.html_url}`,
           ctx,
           prepare,
           config,
         });
+      }
       default:
         return;
     }
