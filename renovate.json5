@@ -1,0 +1,14 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "description": "Non-breaking updates",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchJsonata": ["isBreaking != true"],
+      "groupName": "Non-breaking updates"
+    }
+  ]
+}
