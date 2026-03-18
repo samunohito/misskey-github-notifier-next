@@ -1,0 +1,20 @@
+services:
+  notifier:
+    build: .
+    environment:
+      # Source configuration (GitHub repository "repo1")
+      - ENV_SOURCE_repo1_TYPE=github-webhook
+      - ENV_SOURCE_repo1_ENABLED=true
+      #misskey1,misskey2
+      - ENV_SOURCE_repo1_NOTIFY_TO=misskey1
+      - ENV_SOURCE_repo1_CONFIG_WEBHOOK_SECRET=webhook-secret-for-repo1
+      # Destination configuration (Misskey instance 1)
+      - ENV_DESTINATION_misskey1_TYPE=misskey
+      - ENV_DESTINATION_misskey1_ENABLED=true
+      - ENV_DESTINATION_misskey1_CONFIG_URL=https://misskey1.example.com
+      - ENV_DESTINATION_misskey1_CONFIG_TOKEN=token-for-misskey1
+      #public/home/followers/specified
+      - ENV_DESTINATION_misskey1_CONFIG_DEFAULT_POST_VISIBILITY=home
+      - SERVER_PORT=8080
+    ports:
+      - 8080:8080
