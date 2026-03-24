@@ -1,7 +1,7 @@
-FROM oven/bun:latest
+FROM oven/bun:1.3.5-alpine
 ARG UID="880"
 ARG GID="880"
-RUN groupadd -g "${GID}" notifier && useradd -u "${UID}" -g notifier notifier
+RUN addgroup -g "${GID}" notifier && adduser -u "${UID}" -G notifier -D notifier
 USER notifier
 WORKDIR /home/notifier/misskey-github-notifier-next
 COPY --link ./bun.lock .
