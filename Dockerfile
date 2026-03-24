@@ -10,4 +10,4 @@ COPY --link ./tsconfig.json .
 RUN bun install --frozen-lockfile
 COPY --link ./src ./src
 EXPOSE 8080
-CMD ["bun", "src/index.js"]
+CMD ["bun", "src/index.ts"]

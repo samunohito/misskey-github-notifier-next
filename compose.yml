@@ -1,6 +1,7 @@
 services:
   notifier:
     build: .
+    restart: unless-stopped
     environment:
       # Source configuration (GitHub repository "repo1")
       - ENV_SOURCE_repo1_TYPE=github-webhook
