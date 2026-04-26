@@ -1,4 +1,4 @@
-FROM oven/bun:1.3.5-alpine
+FROM oven/bun:1.3.13-alpine
 ARG UID="880"
 ARG GID="880"
 RUN addgroup -g "${GID}" notifier && adduser -u "${UID}" -G notifier -D notifier
